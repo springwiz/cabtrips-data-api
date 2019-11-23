@@ -59,6 +59,7 @@ func (c *Cache) Refresh() error {
 	rows, err := c.TripDb.Query("select * from cab_trip_data where pickup_datetime >= " +
 		"DATE_FORMAT('20131224', '%Y%m%d')")
 	if err != nil {
+		log.Errorf("error refreshing cache %s", err)
 		return err
 	}
 	defer rows.Close()

@@ -4,6 +4,7 @@ package handler
 import (
 	"cabtrips-data-api/model"
 	"cabtrips-data-api/repository"
+	"cabtrips-data-api/service"
 
 	"encoding/json"
 	"net/http"
@@ -25,13 +26,8 @@ func GetCabtripByIDHandler(resource Resource) func(http.ResponseWriter, *http.Re
 		vars := mux.Vars(r)
 		log.Infof("Cabtrip medallion: %s", vars["id"])
 		cacheKey := r.FormValue("cache")
-		var trips []model.Cabtrip
-		var err error
-		if len(cacheKey) > 0 {
-			trips, err = resource.Cache.GetCabtripByMedallion(vars["id"])
-		} else {
-			trips, err = resource.Mysql.GetCabtripByMedallion(vars["id"])
-		}
+		var cabServ service.Cabtrip = service.NewCabtrip(resource.Cache, resource.Mysql)
+		trips, err := cabServ.GetCabtripByMedallion(vars["id"], cacheKey)
 		if err != nil {
 			errRes, _ := json.Marshal(model.NewException("DBERR00001", "Database Error"))
 			w.WriteHeader(500)
@@ -68,13 +64,8 @@ func GetCabtripByPickupdateHandler(resource Resource) func(http.ResponseWriter, 
 		log.Infof("Cabtrip medallion: %s", vars["id"])
 		log.Infof("Cabtrip pickupdate: %s", vars["pickupdate"])
 		cacheKey := r.FormValue("cache")
-		var trips []model.Cabtrip
-		var err error
-		if len(cacheKey) > 0 {
-			trips, err = resource.Cache.GetCabtripByMedallionAndPickupdate(vars["id"], vars["pickupdate"])
-		} else {
-			trips, err = resource.Mysql.GetCabtripByMedallionAndPickupdate(vars["id"], vars["pickupdate"])
-		}
+		var cabServ service.Cabtrip = service.NewCabtrip(resource.Cache, resource.Mysql)
+		trips, err := cabServ.GetCabtripByMedallionAndPickupdate(vars["id"], vars["pickupdate"], cacheKey)
 		if err != nil {
 			errRes, _ := json.Marshal(model.NewException("DBERR00001", "Database Error"))
 			w.WriteHeader(500)

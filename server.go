@@ -14,9 +14,8 @@ import (
 	"github.com/spf13/viper"
 )
 
-var resource handler.Resource
-
-func init() {
+func initialize() handler.Resource {
+	var resource handler.Resource
 	// read the config yml
 	viper.SetConfigName("server")
 	viper.AddConfigPath(".")
@@ -60,12 +59,15 @@ func init() {
 	resource.Cache = repository.NewCache(tripCache, tripDb)
 	resource.Mysql = repository.NewMysql(tripDb)
 	resource.Cache.Refresh()
+	return resource
 }
 
 // serves as the starting point of the application
 // initializes the mux router and maps the routes to functions
 func main() {
 	r := mux.NewRouter()
+	// acquire and initialize the resoources
+	resource := initialize()
 	r.HandleFunc("/cabtrip/{id}", handler.GetCabtripByIDHandler(resource)).Methods("GET")
 	r.HandleFunc("/cabtrip/{id}", handler.GetCabtripByIDHandler(resource)).Queries("cache", "").Methods("GET")
 	r.HandleFunc("/cabtrip/{id}/date/{pickupdate}", handler.GetCabtripByPickupdateHandler(resource)).Methods("GET")
