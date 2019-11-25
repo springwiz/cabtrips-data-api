@@ -28,6 +28,7 @@ jobs:
       run: |
       cd cmd/cabtrips   
       go build -v .
+      cd ../..
       cd cmd/client
       go build -v .
       
