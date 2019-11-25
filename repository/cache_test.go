@@ -38,7 +38,10 @@ func TestGetCabtripByMedallionCache(t *testing.T) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	tripCache.Set("9A80FE5419FEA4F44DB8E67F29D84A0F", bytes)
+	err = tripCache.Set("9A80FE5419FEA4F44DB8E67F29D84A0F", bytes)
+	if err != nil {
+		log.Fatal(err)
+	}
 	cache := NewCache(tripCache, tripDb)
 	cabtrips1, err1 := cache.GetCabtripByMedallion("9A80FE5419FEA4F44DB8E67F29D84A0F")
 	if err1 != nil {
@@ -75,7 +78,10 @@ func TestGetCabtripByMedallionAndPickupdateCache(t *testing.T) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	tripCache.Set("9A80FE5419FEA4F44DB8E67F29D84A0F", bytes)
+	err = tripCache.Set("9A80FE5419FEA4F44DB8E67F29D84A0F", bytes)
+	if err != nil {
+		log.Fatal(err)
+	}
 	cache := NewCache(tripCache, tripDb)
 	cabtrips1, err1 := cache.GetCabtripByMedallionAndPickupdate("9A80FE5419FEA4F44DB8E67F29D84A0F", "20131231")
 	if err1 != nil {
@@ -104,5 +110,8 @@ func TestRefreshCache(t *testing.T) {
 		log.Fatal(err)
 	}
 	cache := NewCache(tripCache, tripDb)
-	cache.Refresh()
+	err = cache.Refresh()
+	if err != nil {
+		log.Fatal(err)
+	}
 }

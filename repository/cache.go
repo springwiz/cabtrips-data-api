@@ -1,16 +1,13 @@
-// Package repository contains all the repository spec and implementations
 package repository
 
 import (
+	"cabtrips-data-api/model"
 	"database/sql"
 	"encoding/json"
 	"fmt"
 
-	log "github.com/sirupsen/logrus"
-
-	"cabtrips-data-api/model"
-
 	"github.com/allegro/bigcache"
+	log "github.com/sirupsen/logrus"
 )
 
 // Cache is BigCache based implementation of repository
@@ -33,7 +30,10 @@ func (c *Cache) GetCabtripByMedallion(medallion string) ([]model.Cabtrip, error)
 		return nil, fmt.Errorf("no cabtrips found")
 	}
 	log.Infof("Cache hit with key: %s", medallion)
-	json.Unmarshal(bytes, &cabtrips)
+	err = json.Unmarshal(bytes, &cabtrips)
+	if err != nil {
+		return nil, fmt.Errorf("Unmarshal error")
+	}
 	return cabtrips, nil
 }
 
@@ -45,7 +45,10 @@ func (c *Cache) GetCabtripByMedallionAndPickupdate(medallion string, pickupDate 
 		return nil, fmt.Errorf("no cabtrips found")
 	}
 	log.Infof("Cache hit with key: %s", medallion)
-	json.Unmarshal(bytes, &cabtrips)
+	err = json.Unmarshal(bytes, &cabtrips)
+	if err != nil {
+		return nil, fmt.Errorf("Unmarshal error")
+	}
 	for _, cabtrip := range cabtrips {
 		strDate := cabtrip.PickupDatetime.Format(`20060102`)
 		if strDate == pickupDate {
@@ -95,7 +98,10 @@ func (c *Cache) Refresh() error {
 			if err != nil {
 				log.Fatal(err)
 			}
-			c.TripCache.Set(cabtrip.Medallion, bytes)
+			err = c.TripCache.Set(cabtrip.Medallion, bytes)
+			if err != nil {
+				log.Fatal(err)
+			}
 		} else {
 			var cabtrips []model.Cabtrip
 			cabtrips = append(cabtrips, cabtrip)
@@ -103,7 +109,10 @@ func (c *Cache) Refresh() error {
 			if err != nil {
 				log.Fatal(err)
 			}
-			c.TripCache.Set(cabtrip.Medallion, bytes)
+			err = c.TripCache.Set(cabtrip.Medallion, bytes)
+			if err != nil {
+				log.Fatal(err)
+			}
 		}
 	}
 	err = rows.Err()

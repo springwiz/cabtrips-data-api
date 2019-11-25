@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	_ "github.com/go-sql-driver/mysql"
+	log "github.com/sirupsen/logrus"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -50,5 +51,8 @@ func TestRefresh(t *testing.T) {
 			t.Errorf("The code did not panic")
 		}
 	}()
-	mysql.Refresh()
+	err = mysql.Refresh()
+	if err != nil {
+		log.Fatal(err)
+	}
 }

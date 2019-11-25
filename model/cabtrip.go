@@ -1,4 +1,3 @@
-// Package model contains all the entities
 package model
 
 import (
