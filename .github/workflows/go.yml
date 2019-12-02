@@ -26,12 +26,8 @@ jobs:
         fi
     - name: Build
       run: |
-      cd cmd/cabtrips   
-      go build -v .
-      cd ../..
-      cd cmd/client
-      go build -v .
-      
+        go build -v ./cmd/cabtrips
+        go build -v ./cmd/client      
     - name: Golangci-lint
       run: |
         wget -O - -q https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh| sh -s v1.17.1
