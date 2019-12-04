@@ -24,10 +24,13 @@ func TestGetCabtripByIDHandler(t *testing.T) {
 		t.Fatal(err)
 	}
 	rr := httptest.NewRecorder()
-	res, err := getTestResource()
+	// mock the query.
+	tripDb, err := repository.GetMockDB("select \\* from cab_trip_data where medallion = \\?",
+		"9A80FE5419FEA4F44DB8E67F29D84A0F")
 	if err != nil {
-		t.Fatal(err)
+		log.Fatal(err)
 	}
+	res, err := getTestResource(tripDb)
 	handler := http.HandlerFunc(GetCabtripByIDHandler(*res))
 	handler.ServeHTTP(rr, req)
 	if status := rr.Code; status != http.StatusOK {
@@ -52,7 +55,15 @@ func TestGetCabtripByPickupdateHandler(t *testing.T) {
 		t.Fatal(err)
 	}
 	rr := httptest.NewRecorder()
-	res, err := getTestResource()
+	// mock the query.
+	tripDb, err := repository.GetMockDB(
+		"select \\* from cab_trip_data where medallion = \\? and DATE_FORMAT\\(pickup_datetime, '%Y%m%d'\\) = \\?",
+		"9A80FE5419FEA4F44DB8E67F29D84A0F",
+		"20131231")
+	if err != nil {
+		log.Fatal(err)
+	}
+	res, err := getTestResource(tripDb)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -79,7 +90,13 @@ func TestGetCabtripByIDCacheHandler(t *testing.T) {
 		t.Fatal(err)
 	}
 	rr := httptest.NewRecorder()
-	res, err := getTestResource()
+	// mock the query.
+	tripDb, err := repository.GetMockDB("select \\* from cab_trip_data where medallion = \\?",
+		"9A80FE5419FEA4F44DB8E67F29D84A0F")
+	if err != nil {
+		log.Fatal(err)
+	}
+	res, err := getTestResource(tripDb)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -109,7 +126,15 @@ func TestGetCabtripByPickupdateCacheHandler(t *testing.T) {
 		t.Fatal(err)
 	}
 	rr := httptest.NewRecorder()
-	res, err := getTestResource()
+	// mock the query.
+	tripDb, err := repository.GetMockDB(
+		"select \\* from cab_trip_data where medallion = \\? and DATE_FORMAT\\(pickup_datetime, '%Y%m%d'\\) = \\?",
+		"9A80FE5419FEA4F44DB8E67F29D84A0F",
+		"20131231")
+	if err != nil {
+		log.Fatal(err)
+	}
+	res, err := getTestResource(tripDb)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -126,11 +151,7 @@ func TestGetCabtripByPickupdateCacheHandler(t *testing.T) {
 	}
 }
 
-func getTestResource() (*HandlerConfig, error) {
-	tripDb, err := sql.Open("mysql", "root"+":"+"password"+"@tcp("+"localhost"+":"+"3306"+")/"+"cabtrips?parseTime=true")
-	if err != nil {
-		return nil, err
-	}
+func getTestResource(tripDb *sql.DB) (*HandlerConfig, error) {
 	mysql := repository.NewMysql(tripDb)
 	config := bigcache.Config{
 		Shards:             1024,

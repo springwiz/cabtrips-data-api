@@ -21,7 +21,13 @@ func TestGetRefreshCacheHandler(t *testing.T) {
 		t.Fatal(err)
 	}
 	rr := httptest.NewRecorder()
-	res, err := getTestResource()
+	// mock the query.
+	tripDb, err := repository.GetMockDB(
+		"select \\* from cab_trip_data where pickup_datetime >= DATE_FORMAT\\('20131224', '%Y%m%d'\\)")
+	if err != nil {
+		log.Fatal(err)
+	}
+	res, err := getTestResource(tripDb)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -33,11 +39,7 @@ func TestGetRefreshCacheHandler(t *testing.T) {
 	}
 }
 
-func getTestResource() (*HandlerConfig, error) {
-	tripDb, err := sql.Open("mysql", "root"+":"+"password"+"@tcp("+"localhost"+":"+"3306"+")/"+"cabtrips?parseTime=true")
-	if err != nil {
-		return nil, err
-	}
+func getTestResource(tripDb *sql.DB) (*HandlerConfig, error) {
 	config := bigcache.Config{
 		Shards:             1024,
 		LifeWindow:         10,

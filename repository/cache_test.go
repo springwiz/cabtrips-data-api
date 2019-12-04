@@ -1,7 +1,6 @@
 package repository
 
 import (
-	"database/sql"
 	"encoding/json"
 	"log"
 	"testing"
@@ -13,9 +12,12 @@ import (
 )
 
 func TestGetCabtripByMedallionCache(t *testing.T) {
-	tripDb, err := sql.Open("mysql", "root"+":"+"password"+"@tcp("+"localhost"+":"+"3306"+")/"+"cabtrips?parseTime=true")
+	t.Parallel()
+	tripDb, err := GetMockDB(
+		"select \\* from cab_trip_data where medallion = \\?",
+		"9A80FE5419FEA4F44DB8E67F29D84A0F")
 	if err != nil {
-		t.Errorf("error getting db connection %s", err)
+		log.Fatal(err)
 	}
 	config := bigcache.Config{
 		Shards:             1024,
@@ -53,9 +55,13 @@ func TestGetCabtripByMedallionCache(t *testing.T) {
 }
 
 func TestGetCabtripByMedallionAndPickupdateCache(t *testing.T) {
-	tripDb, err := sql.Open("mysql", "root"+":"+"password"+"@tcp("+"localhost"+":"+"3306"+")/"+"cabtrips?parseTime=true")
+	t.Parallel()
+	tripDb, err := GetMockDB(
+		"select \\* from cab_trip_data where medallion = \\? and DATE_FORMAT\\(pickup_datetime, '%Y%m%d'\\) = \\?",
+		"9A80FE5419FEA4F44DB8E67F29D84A0F",
+		"20131231")
 	if err != nil {
-		t.Errorf("error getting db connection %s", err)
+		log.Fatal(err)
 	}
 	config := bigcache.Config{
 		Shards:             1024,
@@ -93,9 +99,11 @@ func TestGetCabtripByMedallionAndPickupdateCache(t *testing.T) {
 }
 
 func TestRefreshCache(t *testing.T) {
-	tripDb, err := sql.Open("mysql", "root"+":"+"password"+"@tcp("+"localhost"+":"+"3306"+")/"+"cabtrips?parseTime=true")
+	t.Parallel()
+	tripDb, err := GetMockDB(
+		"select \\* from cab_trip_data where pickup_datetime >= DATE_FORMAT\\('20131224', '%Y%m%d'\\)")
 	if err != nil {
-		t.Errorf("error getting db connection %s", err)
+		log.Fatal(err)
 	}
 	config := bigcache.Config{
 		Shards:             1024,

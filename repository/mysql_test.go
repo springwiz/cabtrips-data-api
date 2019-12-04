@@ -1,19 +1,19 @@
 package repository
 
 import (
-	"database/sql"
 	"testing"
 
-	_ "github.com/go-sql-driver/mysql"
 	log "github.com/sirupsen/logrus"
-
 	"github.com/stretchr/testify/assert"
 )
 
 func TestGetCabtripByMedallion(t *testing.T) {
-	tripDb, err := sql.Open("mysql", "root"+":"+"password"+"@tcp("+"localhost"+":"+"3306"+")/"+"cabtrips?parseTime=true")
+	t.Parallel()
+	// mock the query.
+	tripDb, err := GetMockDB("select \\* from cab_trip_data where medallion = \\?",
+		"9A80FE5419FEA4F44DB8E67F29D84A0F")
 	if err != nil {
-		t.Errorf("error getting db connection %s", err)
+		log.Fatal(err)
 	}
 	mysql := NewMysql(tripDb)
 	cabtrips, err := mysql.GetCabtripByMedallion("9A80FE5419FEA4F44DB8E67F29D84A0F")
@@ -26,9 +26,14 @@ func TestGetCabtripByMedallion(t *testing.T) {
 }
 
 func TestGetCabtripByMedallionAndPickupdate(t *testing.T) {
-	tripDb, err := sql.Open("mysql", "root"+":"+"password"+"@tcp("+"localhost"+":"+"3306"+")/"+"cabtrips?parseTime=true")
+	t.Parallel()
+	// mock the query.
+	tripDb, err := GetMockDB(
+		"select \\* from cab_trip_data where medallion = \\? and DATE_FORMAT\\(pickup_datetime, '%Y%m%d'\\) = \\?",
+		"9A80FE5419FEA4F44DB8E67F29D84A0F",
+		"20131231")
 	if err != nil {
-		t.Errorf("error getting db connection %s", err)
+		log.Fatal(err)
 	}
 	mysql := NewMysql(tripDb)
 	cabtrips, err := mysql.GetCabtripByMedallionAndPickupdate("9A80FE5419FEA4F44DB8E67F29D84A0F", "20131231")
@@ -41,9 +46,10 @@ func TestGetCabtripByMedallionAndPickupdate(t *testing.T) {
 }
 
 func TestRefresh(t *testing.T) {
-	tripDb, err := sql.Open("mysql", "root"+":"+"password"+"@tcp("+"localhost"+":"+"3306"+")/"+"cabtrips?parseTime=true")
+	t.Parallel()
+	tripDb, err := GetMockDB("", "")
 	if err != nil {
-		t.Errorf("error getting db connection %s", err)
+		log.Fatal(err)
 	}
 	mysql := NewMysql(tripDb)
 	defer func() {
