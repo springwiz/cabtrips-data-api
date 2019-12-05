@@ -31,6 +31,9 @@ func TestGetCabtripByIDHandler(t *testing.T) {
 		log.Fatal(err)
 	}
 	res, err := getTestResource(tripDb)
+	if err != nil {
+		log.Fatal(err)
+	}
 	handler := http.HandlerFunc(GetCabtripByIDHandler(*res))
 	handler.ServeHTTP(rr, req)
 	if status := rr.Code; status != http.StatusOK {
