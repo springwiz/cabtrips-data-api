@@ -1,6 +1,7 @@
 package cache
 
 import (
+	metrics "cabtrips-data-api/log"
 	"cabtrips-data-api/model"
 	"encoding/json"
 	"net/http"
@@ -22,6 +23,7 @@ func NewHandlerConfig(Cache Repository) HandlerConfig {
 // implements and returns the GET GetRefreshCacheHandler
 func GetRefreshCacheHandler(resource HandlerConfig) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
+		metrics.RecordMetrics("GET", "GetRefreshCache", w)
 		err := resource.Cache.Refresh()
 		if err != nil {
 			errRes, _ := json.Marshal(model.NewException("DBERR00001", "Database Error"))

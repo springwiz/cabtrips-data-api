@@ -3,6 +3,7 @@ package main
 import (
 	"cabtrips-data-api/cabs"
 	"cabtrips-data-api/cache"
+	metrics "cabtrips-data-api/log"
 	"cabtrips-data-api/repository"
 	"database/sql"
 	"net/http"
@@ -11,6 +12,7 @@ import (
 	"github.com/allegro/bigcache"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/gorilla/mux"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 )
@@ -78,17 +80,19 @@ func main() {
 	r := mux.NewRouter()
 	// acquire and initialize the resoources
 	serviceConfig := initialize()
+	counters := metrics.SetupCounters()
 	cabtripHandlerConfig := cabs.NewHandlerConfig(serviceConfig.Mysql, serviceConfig.Cache)
 	cacheHandlerConfig := cache.NewHandlerConfig(serviceConfig.Cache)
 	r.HandleFunc("/cabtrip/{id}",
-		cabs.GetCabtripByIDHandler(cabtripHandlerConfig)).Methods("GET")
+		metrics.InstrumentedHandler(cabs.GetCabtripByIDHandler(cabtripHandlerConfig), counters)).Methods("GET")
 	r.HandleFunc("/cabtrip/{id}",
-		cabs.GetCabtripByIDHandler(cabtripHandlerConfig)).Queries("cache", "").Methods("GET")
+		metrics.InstrumentedHandler(cabs.GetCabtripByIDHandler(cabtripHandlerConfig), counters)).Queries("cache", "").Methods("GET")
 	r.HandleFunc("/cabtrip/{id}/date/{pickupdate}",
-		cabs.GetCabtripByPickupdateHandler(cabtripHandlerConfig)).Methods("GET")
+		metrics.InstrumentedHandler(cabs.GetCabtripByPickupdateHandler(cabtripHandlerConfig), counters)).Methods("GET")
 	r.HandleFunc("/cabtrip/{id}/date/{pickupdate}",
-		cabs.GetCabtripByPickupdateHandler(cabtripHandlerConfig)).Queries("cache", "").Methods("GET")
-	r.HandleFunc("/cache/refresh_cache", cache.GetRefreshCacheHandler(cacheHandlerConfig)).Methods("GET")
+		metrics.InstrumentedHandler(cabs.GetCabtripByPickupdateHandler(cabtripHandlerConfig), counters)).Queries("cache", "").Methods("GET")
+	r.HandleFunc("/cache/refresh_cache", metrics.InstrumentedHandler(cache.GetRefreshCacheHandler(cacheHandlerConfig), counters)).Methods("GET")
+	r.HandleFunc("/metrics", promhttp.Handler().ServeHTTP).Methods("GET")
 	err := http.ListenAndServe(serviceConfig.Host+":"+serviceConfig.Port, r)
 	if err != nil {
 		log.Fatalf("starting server failed %s", err)

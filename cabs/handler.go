@@ -2,6 +2,7 @@ package cabs
 
 import (
 	"cabtrips-data-api/cache"
+	metrics "cabtrips-data-api/log"
 	"cabtrips-data-api/model"
 	"encoding/json"
 	"net/http"
@@ -26,6 +27,7 @@ func NewHandlerConfig(Mysql Repository, Cache cache.Repository) HandlerConfig {
 // implements and returns the GET GetCabtripByIDHandler
 func GetCabtripByIDHandler(resource HandlerConfig) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
+		metrics.RecordMetrics("GET", "GetCabtripByID", w)
 		vars := mux.Vars(r)
 		log.Infof("Cabtrip medallion: %s", vars["id"])
 		cacheKey := r.FormValue("cache")
@@ -75,6 +77,7 @@ func GetCabtripByIDHandler(resource HandlerConfig) func(http.ResponseWriter, *ht
 // implements and returns the GET CabtripByPickupdateHandler
 func GetCabtripByPickupdateHandler(resource HandlerConfig) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
+		metrics.RecordMetrics("GET", "GetCabtripByPickupdate", w)
 		vars := mux.Vars(r)
 		log.Infof("Cabtrip medallion: %s", vars["id"])
 		log.Infof("Cabtrip pickupdate: %s", vars["pickupdate"])
