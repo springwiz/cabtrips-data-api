@@ -32,4 +32,4 @@ jobs:
     - name: Upload coverage to Codecov
       run: bash <(curl -s https://codecov.io/bash) -f ./coverage.txt
       env:
-        CODECOV_TOKEN: 5e6d9c85-0174-4b2c-9cca-392366b84604
+        CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
