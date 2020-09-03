@@ -28,7 +28,7 @@ jobs:
         ./bin/golangci-lint run
     - name: Test
       run: |
-        go test ./... 
+        go test ./... -race -coverprofile=coverage.txt -covermode=atomic
     - name: Upload coverage to Codecov
       run: bash <(curl -s https://codecov.io/bash)
       env:
