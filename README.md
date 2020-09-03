@@ -1,4 +1,4 @@
-Cabtrips data api
+Cabtrips data api [![codecov](https://codecov.io/gh/springwiz/cabtrips-data-api/branch/master/graph/badge.svg)](https://codecov.io/gh/springwiz/cabtrips-data-api)
 
 Package implements a Cabtrips api which exposes Rest Apis for exposing the publicly available cab trips dataset. It relies on Package gorilla/mux to manage routes and handle routing. The name mux stands for "HTTP request multiplexer". Like the standard http.ServeMux, mux.Router matches incoming requests against a list of registered routes and calls a handler for the route that matches the URL or other conditions.
 
