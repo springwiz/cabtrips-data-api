@@ -5,8 +5,12 @@ import (
 	"cabtrips-data-api/cache"
 	metrics "cabtrips-data-api/log"
 	"cabtrips-data-api/repository"
+	"context"
 	"database/sql"
 	"net/http"
+	"net/http/pprof"
+	"os"
+	"os/signal"
 	"time"
 
 	"github.com/allegro/bigcache"
@@ -28,6 +32,8 @@ func initialize() config {
 	// read the config yml
 	viper.SetConfigName("server")
 	viper.AddConfigPath(".")
+	viper.AutomaticEnv()
+	viper.SetConfigType("yaml")
 	err := viper.ReadInConfig()
 	if err != nil {
 		log.Warnf("Config file not found...")
@@ -93,8 +99,30 @@ func main() {
 		metrics.InstrumentedHandler(cabs.GetCabtripByPickupdateHandler(cabtripHandlerConfig), counters)).Queries("cache", "").Methods("GET")
 	r.HandleFunc("/cache/refresh_cache", metrics.InstrumentedHandler(cache.GetRefreshCacheHandler(cacheHandlerConfig), counters)).Methods("GET")
 	r.HandleFunc("/metrics", promhttp.Handler().ServeHTTP).Methods("GET")
-	err := http.ListenAndServe(serviceConfig.Host+":"+serviceConfig.Port, r)
-	if err != nil {
-		log.Fatalf("starting server failed %s", err)
+	r.HandleFunc("/debug/pprof/heap", pprof.Handler("heap").ServeHTTP).Methods("GET")
+
+	srv := &http.Server{
+		Addr:         "localhost:9000",
+		WriteTimeout: time.Second * 15,
+		ReadTimeout:  time.Second * 15,
+		IdleTimeout:  time.Second * 60,
+		Handler:      r,
 	}
+
+	// Run our server in a goroutine so that it doesn't block.
+	go func() {
+		if err := srv.ListenAndServe(); err != nil {
+			log.Println(err)
+		}
+	}()
+
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, os.Interrupt)
+	<-c
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*60)
+	defer cancel()
+	<-ctx.Done()
+	srv.Shutdown(ctx)
+	log.Println("shutting down")
+	os.Exit(0)
 }
